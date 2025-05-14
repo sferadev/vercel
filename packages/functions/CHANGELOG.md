@@ -1,5 +1,11 @@
 # @vercel/functions
 
+## 2.0.4
+
+### Patch Changes
+
+- Rename getRuntimeCache to getCache ([#13325](https://github.com/vercel/vercel/pull/13325))
+
 ## 2.0.3
 
 ### Patch Changes
