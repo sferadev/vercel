@@ -25,5 +25,3 @@ export type {
   BuildConfig,
   BuildItem,
 } from '../types';
-
-export type { VercelTsConfig } from './index';

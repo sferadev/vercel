@@ -119,12 +119,12 @@ export interface CompileConfigResult {
   wasCompiled: boolean;
   sourceFile?: string;
   /**
-   * Environment variables extracted from `env` in vercel.ts.
+   * Environment variables extracted from `dynamicEnv` in vercel.ts.
    * These should be injected into process.env before the build runs
    * and sent to the deployment API as runtime env vars.
    * Stripped from compiled output to avoid leaking secrets.
    */
-  env?: Record<string, string>;
+  dynamicEnv?: Record<string, string>;
 }
 
 export const VERCEL_CONFIG_EXTENSIONS = [
@@ -368,9 +368,9 @@ export async function compileVercelConfig(
 
     const normalizedConfig = normalizeConfig(config as VercelConfig);
 
-    // Extract env before persisting — these are consumed by the CLI
+    // Extract dynamicEnv before persisting — these are consumed by the CLI
     // and should not leak into the compiled JSON (may contain secrets).
-    const { env, ...persistedConfig } = normalizedConfig;
+    const { dynamicEnv, ...persistedConfig } = normalizedConfig;
 
     await writeFile(
       compiledConfigPath,
@@ -380,16 +380,18 @@ export async function compileVercelConfig(
 
     output.debug(`Compiled ${vercelConfigPath} -> ${compiledConfigPath}`);
 
-    const hasEnv = env && Object.keys(env).length > 0;
-    if (hasEnv) {
-      output.debug(`Extracted env: ${Object.keys(env).join(', ')}`);
+    const hasDynamicEnv = dynamicEnv && Object.keys(dynamicEnv).length > 0;
+    if (hasDynamicEnv) {
+      output.debug(
+        `Extracted dynamicEnv: ${Object.keys(dynamicEnv).join(', ')}`
+      );
     }
 
     return {
       configPath: compiledConfigPath,
       wasCompiled: true,
       sourceFile: (await findSourceVercelConfigFile(workPath)) ?? undefined,
-      env: hasEnv ? env : undefined,
+      dynamicEnv: hasDynamicEnv ? dynamicEnv : undefined,
     };
   } catch (error: any) {
     throw new NowBuildError({

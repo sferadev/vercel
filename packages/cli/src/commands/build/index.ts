@@ -518,13 +518,13 @@ async function doBuild(
     }
   }
 
-  // Inject env from vercel.ts into process.env before the build runs
-  if (compileResult.env) {
-    for (const [key, value] of Object.entries(compileResult.env)) {
+  // Inject dynamicEnv from vercel.ts into process.env before the build runs
+  if (compileResult.dynamicEnv) {
+    for (const [key, value] of Object.entries(compileResult.dynamicEnv)) {
       envToRestore.set(key, process.env[key]);
       process.env[key] = value;
       envToUnset.add(key);
-      output.debug(`env (from vercel.ts): set ${key}`);
+      output.debug(`dynamicEnv: set ${key}`);
     }
   }
 
