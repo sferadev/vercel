@@ -447,12 +447,8 @@ export interface VercelConfig {
    */
   cleanUrls?: boolean;
   /**
-   * Environment variables for the deployment.
-   * Available both during the build step (`process.env`) and at runtime
-   * in Serverless and Edge Functions.
-   * When used in `vercel.ts`, values are stripped from the compiled config
-   * and not persisted to `vercel.json`, making it safe for dynamically
-   * fetched secrets.
+   * An object containing the deployment's environment variable names and values. Secrets can be referenced by prefixing the value with `@`
+   * @deprecated Use Environment Variables in the Vercel Dashboard or `env` in `vercel.ts` instead.
    */
   env?: Record<string, string>;
   /**
