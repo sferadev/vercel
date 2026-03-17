@@ -197,7 +197,7 @@ async function handleInitDeployment(
     return pathValidation.exitCode;
   }
 
-  await compileVercelConfig(paths[0]);
+  const compileResult = await compileVercelConfig(paths[0]);
   let localConfig = client.localConfig || readLocalConfig(paths[0]);
 
   if (localConfig) {
@@ -372,12 +372,14 @@ async function handleInitDeployment(
 
   const deploymentEnv = Object.assign(
     {},
+    compileResult.deploymentEnv,
     parseEnv(localConfig.env),
     parseEnv(parsedArguments.flags['--env'])
   );
 
   const deploymentBuildEnv = Object.assign(
     {},
+    compileResult.deploymentEnv,
     parseEnv(localConfig.build && localConfig.build.env),
     parseEnv(parsedArguments.flags['--build-env'])
   );
@@ -745,7 +747,7 @@ async function handleDefaultDeploy(
   // #endregion
 
   // #region Config loading
-  await compileVercelConfig(paths[0]);
+  const compileResult = await compileVercelConfig(paths[0]);
 
   let localConfig = client.localConfig || readLocalConfig(paths[0]);
 
@@ -1020,12 +1022,14 @@ async function handleDefaultDeploy(
   // #region Env vars validation
   const deploymentEnv = Object.assign(
     {},
+    compileResult.deploymentEnv,
     parseEnv(localConfig.env),
     parseEnv(parsedArguments.flags['--env'])
   );
 
   const deploymentBuildEnv = Object.assign(
     {},
+    compileResult.deploymentEnv,
     parseEnv(localConfig.build && localConfig.build.env),
     parseEnv(parsedArguments.flags['--build-env'])
   );

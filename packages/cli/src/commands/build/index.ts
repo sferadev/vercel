@@ -323,6 +323,8 @@ export default async function main(client: Client): Promise<number> {
   }
 
   const envToUnset = new Set<string>(['VERCEL', 'NOW_BUILDER']);
+  // Track keys that existed before buildEnv override, so we can restore them
+  const envToRestore = new Map<string, string | undefined>();
 
   try {
     const envPath = join(
@@ -398,10 +400,15 @@ export default async function main(client: Client): Promise<number> {
       output.prettyError(err);
     }
 
-    // Unset environment variables that were added by dotenv
+    // Unset environment variables that were added by dotenv or buildEnv
     // (this is mostly for the unit tests)
     for (const key of envToUnset) {
-      delete process.env[key];
+      // Restore overridden env vars from buildEnv to their original values
+      if (envToRestore.has(key) && envToRestore.get(key) !== undefined) {
+        process.env[key] = envToRestore.get(key);
+      } else {
+        delete process.env[key];
+      }
     }
 
     // Clean up VERCEL_INSTALL_COMPLETED to allow subsequent builds in the same process
@@ -508,6 +515,16 @@ async function doBuild(
     const cronSecretError = validateCronSecret(process.env.CRON_SECRET);
     if (cronSecretError) {
       throw cronSecretError;
+    }
+  }
+
+  // Inject deploymentEnv from vercel.ts into process.env before the build runs
+  if (compileResult.deploymentEnv) {
+    for (const [key, value] of Object.entries(compileResult.deploymentEnv)) {
+      envToRestore.set(key, process.env[key]);
+      process.env[key] = value;
+      envToUnset.add(key);
+      output.debug(`deploymentEnv: set ${key}`);
     }
   }
 

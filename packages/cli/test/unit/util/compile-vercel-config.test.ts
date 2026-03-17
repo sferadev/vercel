@@ -369,6 +369,83 @@ describe('compileVercelConfig', () => {
     });
   });
 
+  it('should extract deploymentEnv and strip it from compiled output', async () => {
+    const vercelTsPath = join(tmpDir, 'vercel.ts');
+    const vercelTsContent = `
+      export default {
+        buildCommand: 'npm run build',
+        deploymentEnv: {
+          API_URL: 'https://api.example.com',
+          FEATURE_FLAG: 'true',
+        },
+      };
+    `;
+    await writeFile(vercelTsPath, vercelTsContent);
+
+    const result = await compileVercelConfig(tmpDir);
+
+    expect(result.wasCompiled).toBe(true);
+    expect(result.deploymentEnv).toEqual({
+      API_URL: 'https://api.example.com',
+      FEATURE_FLAG: 'true',
+    });
+
+    // deploymentEnv should NOT be persisted in the compiled JSON
+    const compiledConfig = require(result.configPath!);
+    expect(compiledConfig.deploymentEnv).toBeUndefined();
+    expect(compiledConfig.buildCommand).toBe('npm run build');
+  });
+
+  it('should return undefined deploymentEnv when not set', async () => {
+    const vercelTsPath = join(tmpDir, 'vercel.ts');
+    const vercelTsContent = `
+      export default {
+        buildCommand: 'npm run build',
+      };
+    `;
+    await writeFile(vercelTsPath, vercelTsContent);
+
+    const result = await compileVercelConfig(tmpDir);
+
+    expect(result.wasCompiled).toBe(true);
+    expect(result.deploymentEnv).toBeUndefined();
+  });
+
+  it('should return undefined deploymentEnv when it is an empty object', async () => {
+    const vercelTsPath = join(tmpDir, 'vercel.ts');
+    const vercelTsContent = `
+      export default {
+        deploymentEnv: {},
+      };
+    `;
+    await writeFile(vercelTsPath, vercelTsContent);
+
+    const result = await compileVercelConfig(tmpDir);
+
+    expect(result.wasCompiled).toBe(true);
+    expect(result.deploymentEnv).toBeUndefined();
+  });
+
+  it('should support async deploymentEnv values from vercel.ts', async () => {
+    const vercelTsPath = join(tmpDir, 'vercel.ts');
+    const vercelTsContent = `
+      const value = await Promise.resolve('resolved-value');
+      export default {
+        deploymentEnv: {
+          ASYNC_VAR: value,
+        },
+      };
+    `;
+    await writeFile(vercelTsPath, vercelTsContent);
+
+    const result = await compileVercelConfig(tmpDir);
+
+    expect(result.wasCompiled).toBe(true);
+    expect(result.deploymentEnv).toEqual({
+      ASYNC_VAR: 'resolved-value',
+    });
+  });
+
   it('should not merge routes and rewrites even if both contain transforms', async () => {
     const vercelTsPath = join(tmpDir, 'vercel.ts');
     const vercelTsContent = `

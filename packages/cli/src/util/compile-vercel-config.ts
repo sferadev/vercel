@@ -118,6 +118,12 @@ export interface CompileConfigResult {
   configPath: string | null;
   wasCompiled: boolean;
   sourceFile?: string;
+  /**
+   * Environment variables extracted from `deploymentEnv` in vercel.ts.
+   * These should be injected into process.env before the build runs
+   * and sent to the deployment API as runtime env vars.
+   */
+  deploymentEnv?: Record<string, string>;
 }
 
 export const VERCEL_CONFIG_EXTENSIONS = [
@@ -360,18 +366,32 @@ export async function compileVercelConfig(
     });
 
     const normalizedConfig = normalizeConfig(config as VercelConfig);
+
+    // Extract deploymentEnv before persisting — these are consumed by the CLI
+    // and should not leak into the compiled JSON (may contain secrets).
+    const { deploymentEnv, ...persistedConfig } = normalizedConfig;
+
     await writeFile(
       compiledConfigPath,
-      JSON.stringify(normalizedConfig, null, 2),
+      JSON.stringify(persistedConfig, null, 2),
       'utf-8'
     );
 
     output.debug(`Compiled ${vercelConfigPath} -> ${compiledConfigPath}`);
 
+    const hasDynamicEnv =
+      deploymentEnv && Object.keys(deploymentEnv).length > 0;
+    if (hasDynamicEnv) {
+      output.debug(
+        `Extracted deploymentEnv: ${Object.keys(deploymentEnv).join(', ')}`
+      );
+    }
+
     return {
       configPath: compiledConfigPath,
       wasCompiled: true,
       sourceFile: (await findSourceVercelConfigFile(workPath)) ?? undefined,
+      deploymentEnv: hasDynamicEnv ? deploymentEnv : undefined,
     };
   } catch (error: any) {
     throw new NowBuildError({
