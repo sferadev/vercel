@@ -518,13 +518,13 @@ async function doBuild(
     }
   }
 
-  // Inject deploymentEnv from vercel.ts into process.env before the build runs
-  if (compileResult.deploymentEnv) {
-    for (const [key, value] of Object.entries(compileResult.deploymentEnv)) {
+  // Inject env from vercel.ts into process.env before the build runs
+  if (compileResult.env) {
+    for (const [key, value] of Object.entries(compileResult.env)) {
       envToRestore.set(key, process.env[key]);
       process.env[key] = value;
       envToUnset.add(key);
-      output.debug(`deploymentEnv: set ${key}`);
+      output.debug(`env (from vercel.ts): set ${key}`);
     }
   }
 

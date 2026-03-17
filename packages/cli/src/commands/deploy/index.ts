@@ -372,14 +372,14 @@ async function handleInitDeployment(
 
   const deploymentEnv = Object.assign(
     {},
-    compileResult.deploymentEnv,
+    compileResult.env,
     parseEnv(localConfig.env),
     parseEnv(parsedArguments.flags['--env'])
   );
 
   const deploymentBuildEnv = Object.assign(
     {},
-    compileResult.deploymentEnv,
+    compileResult.env,
     parseEnv(localConfig.build && localConfig.build.env),
     parseEnv(parsedArguments.flags['--build-env'])
   );
@@ -1022,14 +1022,14 @@ async function handleDefaultDeploy(
   // #region Env vars validation
   const deploymentEnv = Object.assign(
     {},
-    compileResult.deploymentEnv,
+    compileResult.env,
     parseEnv(localConfig.env),
     parseEnv(parsedArguments.flags['--env'])
   );
 
   const deploymentBuildEnv = Object.assign(
     {},
-    compileResult.deploymentEnv,
+    compileResult.env,
     parseEnv(localConfig.build && localConfig.build.env),
     parseEnv(parsedArguments.flags['--build-env'])
   );
