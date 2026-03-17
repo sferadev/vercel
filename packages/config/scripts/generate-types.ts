@@ -536,6 +536,24 @@ function generateTypes(schema: JSONSchema): string {
     }
   }
 
+  // CLI-only fields not present in the OpenAPI schema
+  output.push('  /**');
+  output.push(
+    '   * Environment variables for the deployment, computed dynamically in `vercel.ts`.'
+  );
+  output.push(
+    '   * Available both during the build step (`process.env`) and at runtime'
+  );
+  output.push('   * in Serverless and Edge Functions.');
+  output.push(
+    '   * Values are stripped from the compiled config and not persisted to'
+  );
+  output.push(
+    '   * `vercel.json`, making it safe for dynamically fetched secrets.'
+  );
+  output.push('   */');
+  output.push('  dynamicEnv?: Record<string, string>;');
+
   output.push('}');
   output.push('');
   output.push('');
